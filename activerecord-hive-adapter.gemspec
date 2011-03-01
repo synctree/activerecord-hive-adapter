@@ -9,8 +9,8 @@ Gem::Specification.new do |s|
   s.authors     = ["Masahji Stewart", "Blake Petetan"]
   s.email       = ["masahji@synctree.com", "blake@synctree.com"]
   s.homepage    = ""
-  s.summary     = %q{TODO: Write a gem summary}
-  s.description = %q{TODO: Write a gem description}
+  s.summary     = ""
+  s.description = ""
 
   s.rubyforge_project = "activerecord-hive-adapter"
 
