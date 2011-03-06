@@ -17,15 +17,14 @@ module ActiveRecord
         :primary_key => { :name => "STRING" },
       }
 
-      def adapter_name
-        "Hive"
-      end
-
-      def version
+      def hive_version
         # TODO
         ""
       end
 
+      def adapter_name
+        "Hive"
+      end
 
       def supports_migrations?
         true

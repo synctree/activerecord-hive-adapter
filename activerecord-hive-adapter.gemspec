@@ -1,10 +1,9 @@
 # -*- encoding: utf-8 -*-
 $:.push File.expand_path("../lib", __FILE__)
-require "activerecord-hive-adapter/version"
 
 Gem::Specification.new do |s|
   s.name        = "activerecord-hive-adapter"
-  s.version     = ActiveRecord::ConnectionAdapters::HiveAdapter::VERSION
+  s.version     = "0.0.1"
   s.platform    = Gem::Platform::RUBY
   s.authors     = ["Masahji Stewart", "Blake Petetan"]
   s.email       = ["masahji@synctree.com", "blake@synctree.com"]
