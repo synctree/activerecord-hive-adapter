@@ -9,6 +9,7 @@ module ActiveRecord
       @@dual = :dual
 
       NATIVE_DATABASE_TYPES = {
+        :array       => { :name => "ARRAY<STRING>" },
         :text        => { :name => "STRING" },
         :datetime    => { :name => "STRING" },
         :timestamp   => { :name => "STRING" },
@@ -17,7 +18,7 @@ module ActiveRecord
         :primary_key => { :name => "STRING" },
       }
 
-      def hive_version
+      def version
         # TODO
         ""
       end
