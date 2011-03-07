@@ -1,4 +1,3 @@
-require 'active_record'
 require 'active_record/connection_adapters/abstract_adapter'
 require 'rbhive'
 
@@ -10,7 +9,7 @@ module ActiveRecord
       @@dual = :dual
 
       NATIVE_DATABASE_TYPES = {
-        :array       => { :name => "ARRAY<STRING>" },
+        :array       => { :name => "ARRAY<STRING>" }, 
         :text        => { :name => "STRING" },
         :datetime    => { :name => "STRING" },
         :timestamp   => { :name => "STRING" },
@@ -44,10 +43,10 @@ module ActiveRecord
       # Maps logical Rails types to Hive-specific data types.
       def type_to_sql(type, limit = nil, precision = nil, scale = nil)
         return case limit
-          when 1; 'tinyint'
-          when 2; 'smallint'
-          when nil, 3, 4; 'int'
-          when 5..8; 'bigint'
+          when 1; 'TINYINT'
+          when 2; 'SMALLINT'
+          when nil, 3, 4; 'INT'
+          when 5..8; 'BIGINT'
           else raise(ActiveRecordError, "No integer type has byte size #{limit}")
         end if type == :integer
 

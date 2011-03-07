@@ -12,6 +12,7 @@ Gem::Specification.new do |s|
   s.description = "ActiveRecord connection adapter for Hive"
 
   s.add_development_dependency 'rspec', '~> 2'
+  s.add_development_dependency 'ruby-debug'
 
   s.add_runtime_dependency 'activerecord', '~> 3'
   s.add_runtime_dependency 'rbhive', '~> 0.1'
