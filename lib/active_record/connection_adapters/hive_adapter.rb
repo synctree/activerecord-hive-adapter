@@ -147,8 +147,10 @@ module ActiveRecord
           drop_table(table_name, options)
         end
 
-        create_sql = "CREATE#{' TEMPORARY' if options[:temporary]} TABLE "
-        create_sql << "#{quote_table_name(table_name)} ("
+        create_sql = "CREATE "
+        create_sql << "TEMPORARY "  if options[:temporary]
+        create_sql << "EXTERNAL "   if options[:external]
+        create_sql << "TABLE #{quote_table_name(table_name)} ("
         create_sql << td.to_sql
         create_sql << ")"
         if td.partitions.size > 0
