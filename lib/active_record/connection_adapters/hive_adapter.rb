@@ -5,6 +5,7 @@ module ActiveRecord
   module ConnectionAdapters
     class HiveAdapter < AbstractAdapter
       attr_reader :logger
+      attr_reader :connection
       cattr_accessor :dual
       @@dual = :dual
 
@@ -162,7 +163,7 @@ module ActiveRecord
 
   class Base
     def self.hive_connection(config)
-      connection = RBHive::Connection.new(config[:host], config[:port] || 10_000)
+      connection = RBHive::Connection.new(config[:host], config[:port] || 10_000, logger)
       connection.open
       ConnectionAdapters::HiveAdapter.new(connection, logger)
     end

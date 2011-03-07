@@ -13,6 +13,7 @@ Installing
 Usage
 -----
 
+
 Contributing
 ------------
 
@@ -22,6 +23,7 @@ Testing
 
     rake spec
     rake rcov
+
 
 Building
 --------

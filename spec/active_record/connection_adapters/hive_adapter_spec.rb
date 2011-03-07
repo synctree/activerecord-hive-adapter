@@ -4,6 +4,7 @@ describe "HiveAdapter" do
   include SchemaSpecHelper
 
   before(:all) do
+    ActiveRecord::Base.logger = Logger.new(STDERR)
     ActiveRecord::Base.establish_connection(
       :adapter => 'hive',
       :host    => 'localhost', 
@@ -15,6 +16,10 @@ describe "HiveAdapter" do
       # drop all tables
       tables.each { |t| drop_table t }
     end
+  end
+
+  it "should pass logger through to rbhive connection" do
+    ActiveRecord::Base.connection.logger.should == ActiveRecord::Base.connection.connection.instance_variable_get("@logger")
   end
 
   describe "create_table" do
