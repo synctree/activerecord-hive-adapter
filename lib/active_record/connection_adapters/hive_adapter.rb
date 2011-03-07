@@ -3,6 +3,7 @@ require 'rbhive'
 
 module ActiveRecord
   module ConnectionAdapters
+
     class HiveAdapter < AbstractAdapter
       attr_reader :logger
       attr_reader :connection
@@ -136,6 +137,29 @@ module ActiveRecord
       end
 
 
+      def create_table(table_name, options = {})
+        td = hive_table_definition
+        td.primary_key(options[:primary_key] || Base.get_primary_key(table_name.to_s.singularize)) unless options[:id] == false
+
+        yield td if block_given?
+
+        if options[:force] && table_exists?(table_name)
+          drop_table(table_name, options)
+        end
+
+        create_sql = "CREATE#{' TEMPORARY' if options[:temporary]} TABLE "
+        create_sql << "#{quote_table_name(table_name)} ("
+        create_sql << td.to_sql
+        create_sql << ")"
+        if td.partitions.size > 0
+          create_sql << "PARTITIONED BY ("
+          create_sql << td.partitions_to_sql
+          create_sql << ")"
+        end
+        create_sql << "#{options[:options]}"
+        execute create_sql
+      end
+
 
 
 
@@ -158,7 +182,35 @@ module ActiveRecord
       def add_index(table_name, column_name, options = {}); indexes_not_supported; end
       def index_exists?(table_name, column_name, options = {}); indexes_not_supported; end
 
+
+
+      def hive_table_definition
+        HiveTableDefinition.new(self)
+      end
     end
+
+    class HiveTableDefinition < TableDefinition
+      attr_reader :partitions
+     
+      def initialize(base)
+        @partitions = []
+        super
+      end 
+
+      def column(name, type, options = {})
+        super
+        @partitions << @columns.last if options[:partition]
+      end
+
+      def to_sql
+        @columns.delete_if { |c| @partitions.include?(c) }.map { |c| c.to_sql } * ', '
+      end
+
+      def partitions_to_sql
+        @partitions.map { |c| c.to_sql } * ', '
+      end
+    end
+
   end
 
   class Base
