@@ -122,7 +122,10 @@ module ActiveRecord
 
       def create_table(table_name, options = {})
         td = hive_table_definition
-        td.primary_key(options[:primary_key] || Base.get_primary_key(table_name.to_s.singularize)) unless options[:id] == false
+        td.primary_key(
+          options[:primary_key] || 
+          Base.get_primary_key(table_name.to_s.singularize)
+        ) unless options[:id] == false
 
         yield td if block_given?
 
