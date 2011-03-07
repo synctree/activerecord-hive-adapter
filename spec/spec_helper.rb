@@ -1,7 +1,7 @@
 $:.unshift(File.expand_path('../../lib', __FILE__))
 require 'active_record'
 require 'active_record/connection_adapters/hive_adapter'
-require 'ruby-debug'
+require 'rspec'
 
 module SchemaSpecHelper
   def schema_define(&block)
