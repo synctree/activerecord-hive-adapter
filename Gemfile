@@ -4,3 +4,4 @@ gemspec
 
 gem 'activerecord', "~> 3"
 gem 'rspec', "~> 2"
+gem 'json'

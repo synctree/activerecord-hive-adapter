@@ -25,23 +25,36 @@ describe "HiveAdapter" do
   describe "create_table" do
     before(:all) do
     schema_define do
-      create_table :with_an_array_column do |t|
+      create_table :partitioned_with_an_array_column do |t|
         t.column :c, :array
+        t.column :partition_a, :string, :partition => true, :null => false
       end 
     end 
     end
 
+    it "should classify partition columns" do
+      schema_define do
+        c = column_for(:partition_a, :partitioned_with_an_array_column)
+        c.sql_type.upcase.should == "STRING"
+        c.type.should == :string
+        c.partition.should == true
+      end
+    end
+
     it "should default :id column type to string" do
     schema_define do
-      c = column_for(:id, :with_an_array_column)
+      c = column_for(:id, :partitioned_with_an_array_column)
       c.sql_type.upcase.should == "STRING"
+      c.type.should == :string
+      c.primary.should == true
     end
     end
 
-    it "should make :array column type to ARRAY<STRING>" do
+    it "should convert :array column type to ARRAY<STRING>" do
     schema_define do
-      c = column_for(:c, :with_an_array_column)
+      c = column_for(:c, :partitioned_with_an_array_column)
       c.sql_type.upcase.should == "ARRAY<STRING>"
+      c.type.should == :array
     end  
     end
   end

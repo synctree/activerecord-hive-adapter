@@ -1,5 +1,6 @@
 require 'active_record/connection_adapters/abstract_adapter'
 require 'rbhive'
+require 'json'
 
 module ActiveRecord
   module ConnectionAdapters
@@ -91,33 +92,26 @@ module ActiveRecord
       end
 
       def primary_key(table)
-        return columns(table).delete_if { |c| !c.primary }.collect { |c| c.name }
+        return columns(table).reject { |c| !c.primary }.collect { |c| c.name }
       end
 
       def columns(table, name = nil)
         results = select_rows("DESCRIBE EXTENDED #{table}")
-        # NOTE if this code gets too long just create a custom HiveColumn class
-        columns = []
-        return results. delete_if { |r| r.first.blank? || r.first =~ /table info/i }.
-                        collect   { |r|
-          (column_name, type, comment) = r
-
-          column_details = {}
-          begin
-            column_details = JSON.parse(comment).symbolize_keys
-          rescue;
-          end
-
-          c = Column.new(column_name, column_details[:default], type, column_details[:null])
-          c.primary = true if column_details[:requested_type] == 'primary_key'
-          c
+        return results.delete_if { |r| r.first.blank? || r.first =~ /table info/i }.
+                       collect   { |r|
+          (column_name, sql_type, comment) = r
+          column_details = JSON.parse(comment || "{}").symbolize_keys
+          HiveColumn.new(column_name, sql_type, column_details)
         }
       end
 
       def add_column_options!(sql, options) #:nodoc:
         comments = options.dup.delete_if { |k, value|
-          !%w(default null requested_type type).include?(k.to_s)
+          !%w(default null requested_type type partition).include?(k.to_s)
         }
+        c = options[:column]
+        comments[:partition] = true if c && c.partition
+
         # Stuffing args we can't work with now in Hive into a comment
         sql << " COMMENT #{quote(comments.to_json)}" if comments.size > 0
       end
@@ -191,25 +185,52 @@ module ActiveRecord
       end
     end
 
+    class HiveColumn < Column
+      attr_accessor :partition
+
+      def initialize(name, sql_type, column_details)
+        super(name, column_details[:default], sql_type, column_details[:null])
+        self.primary   = true if column_details[:requested_type] == 'primary_key'
+        self.partition = true if column_details[:partition]
+      end
+
+      def klass
+        return type == :array ? Array : super
+      end
+
+      def simplified_type(field_type)
+        return field_type =~ /array/i ? :array : super
+      end
+    end
+
+    class ColumnDefinition
+      attr_accessor :partition
+    end
+
     class HiveTableDefinition < TableDefinition
-      attr_reader :partitions
      
       def initialize(base)
         @partitions = []
         super
       end 
 
+      def partitions
+        return columns.reject { |c| !c.partition }
+      end
+
       def column(name, type, options = {})
         super
-        @partitions << @columns.last if options[:partition]
+        c = self[name]
+        c.partition = options[:partition]
+        self
       end
 
       def to_sql
-        @columns.delete_if { |c| @partitions.include?(c) }.map { |c| c.to_sql } * ', '
+        columns.reject { |c| c.partition }.map { |c| c.to_sql } * ', '
       end
 
       def partitions_to_sql
-        @partitions.map { |c| c.to_sql } * ', '
+        partitions.collect { |c| c.to_sql } * ', '
       end
     end
 
