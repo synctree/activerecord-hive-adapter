@@ -18,7 +18,8 @@ module ActiveRecord
         :timestamp   => { :name => "STRING" },
         :time        => { :name => "STRING" },
         :date        => { :name => "STRING" },
-        :primary_key => { :name => "STRING" },
+        :primary_key => { :name => "STRING", :null => false },
+        :string      => { :name => "STRING" },
       }
 
       def version
@@ -52,16 +53,7 @@ module ActiveRecord
           when 5..8; 'BIGINT'
           else raise(ActiveRecordError, "No integer type has byte size #{limit}")
         end if type == :integer
-
-        sql = super
-        # Hack to get around Column Definition not including column info in primary
-        # key def
-        add_column_options!(
-          sql,
-          native_database_types[type].update(:requested_type => type)
-        )
-
-        return sql
+        super
       end
     
 
@@ -109,9 +101,6 @@ module ActiveRecord
         comments = options.dup.delete_if { |k, value|
           !%w(default null requested_type type partition).include?(k.to_s)
         }
-        c = options[:column]
-        comments[:partition] = true if c && c.partition
-
         # Stuffing args we can't work with now in Hive into a comment
         sql << " COMMENT #{quote(comments.to_json)}" if comments.size > 0
       end
@@ -163,13 +152,13 @@ module ActiveRecord
 
 
       # TODO Deal with Hive 0.7 Indexes
+      def indexes(table_name, name = nil); []; end
       def indexes_not_supported(*args)
         logger.fatal(<<"        INDEXES_NOT_SUPPORTED")
           Indexes aren't supported in #{self.adapter_name} on version #{version}
           So #{caller.first} on #{args.to_json} would fail
         INDEXES_NOT_SUPPORTED
       end
-
       def index_name_exists?(table_name, index_name, default); false; end
       def index_name(table_name, options);                  indexes_not_supported; end
       def remove_index!(table_name, index_name);            indexes_not_supported; end
@@ -189,7 +178,8 @@ module ActiveRecord
       attr_accessor :partition
 
       def initialize(name, sql_type, column_details)
-        super(name, column_details[:default], sql_type, column_details[:null])
+        super(name, column_details[:default], sql_type, 
+              column_details[:null].nil? ? true : column_details[:null])
         self.primary   = true if column_details[:requested_type] == 'primary_key'
         self.partition = true if column_details[:partition]
       end
@@ -205,6 +195,23 @@ module ActiveRecord
 
     class ColumnDefinition
       attr_accessor :partition
+
+      def to_sql
+        column_sql = "#{base.quote_column_name(name)} #{sql_type}"
+        column_options = {}
+        column_options[:null] = null unless null.nil?
+        column_options[:default] = default unless default.nil?
+        column_options[:partition] = partition if partition
+        column_options[:requested_type] = type
+        add_column_options!(
+          column_sql, 
+          base.native_database_types[type].update(column_options)
+        )
+        column_sql
+      end
+
+      
+
     end
 
     class HiveTableDefinition < TableDefinition

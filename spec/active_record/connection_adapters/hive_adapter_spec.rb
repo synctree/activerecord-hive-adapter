@@ -38,6 +38,7 @@ describe "HiveAdapter" do
         c.sql_type.upcase.should == "STRING"
         c.type.should == :string
         c.partition.should == true
+        c.null.should == false
       end
     end
 
@@ -55,6 +56,7 @@ describe "HiveAdapter" do
       c = column_for(:c, :partitioned_with_an_array_column)
       c.sql_type.upcase.should == "ARRAY<STRING>"
       c.type.should == :array
+      c.null.should == true
     end  
     end
   end
