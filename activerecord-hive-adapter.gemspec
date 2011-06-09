@@ -3,7 +3,7 @@ $:.push File.expand_path("../lib", __FILE__)
 
 Gem::Specification.new do |s|
   s.name        = "activerecord-hive-adapter"
-  s.version     = "0.0.1"
+  s.version     = "0.0.2"
   s.platform    = Gem::Platform::RUBY
   s.authors     = ["Masahji Stewart", "Blake Petetan"]
   s.email       = ["masahji@synctree.com", "blake@synctree.com"]
