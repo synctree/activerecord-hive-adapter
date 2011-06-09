@@ -17,6 +17,7 @@ Gem::Specification.new do |s|
 
   s.add_runtime_dependency 'activerecord', '~> 3'
   s.add_runtime_dependency 'rbhive', '~> 0.1'
+  s.add_runtime_dependency 'json'
   
   s.rubyforge_project = "activerecord-hive-adapter"
 
